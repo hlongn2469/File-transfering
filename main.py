@@ -3,6 +3,7 @@ import os
 import fnmatch
 import shutil
 from pathlib import Path
+import glob
 
 # for file monitoring
 import sys
@@ -13,21 +14,16 @@ from watchdog.events import LoggingEventHandler
 from watchdog.events import FileSystemEventHandler
 
 class MyHandler(FileSystemEventHandler):
-    def on_any_event(self, event):
+    def on_any_event(self, event):     
         transferFile()
         
-
+        
 
 def transferFile():
-    #assign source-destination folder path
-    from_folder = r"C:\Users\krayn\test-file-transfering\from"
-    to_folder = r"C:\Users\krayn\test-file-transfering\to"
-
     # define file patern
     pattern = "*txt*"
 
     #sort date from source
-    paths = sorted(Path(from_folder).iterdir(), key=os.path.getmtime)
 
     # select files that have xml extensions
     source_folder = os.listdir(from_folder)
@@ -45,24 +41,28 @@ def transferFile():
                     
                 shutil.move(full_file_name, to_folder)
     #sort date in destination
-    paths = sorted(Path(to_folder).iterdir(), key=os.path.getmtime)
-
     
+
+def sortFileByDate(dirpath):
+    paths = sorted(Path(dirpath).iterdir(), key=os.path.getmtime)
 
 
 ## Main
 #transferFile()
 
 if __name__ == "__main__":
+    #assign source-destination folder path
+    from_folder = r"C:\Users\krayn\test-file-transfering\From"
+    to_folder = r"C:\Users\krayn\test-file-transfering\To2"
     my_event_handler = MyHandler()
-    path = r"C:\Users\krayn\test-file-transfering\from"
     my_observer = Observer()
-    my_observer.schedule(my_event_handler, path, recursive=False)
-
+    my_observer.schedule(my_event_handler, from_folder, recursive=False)
     my_observer.start()
     try:
         while True:
             time.sleep(1)
+            sortFileByDate(to_folder)
+            
     except KeyboardInterrupt:
         my_observer.stop()
     my_observer.join()
