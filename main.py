@@ -66,7 +66,7 @@ to_f = os.listdir(to_folder)
 
 len_source = len(source_f)
 len_dest = len(to_f)
-while(len_source != 0 and len_dest == 0):
+while(len_dest == 0):
     print(len_source)
     print(len_dest)
     len_deduct = transferFile()
