@@ -32,12 +32,18 @@ def transferFile():
                     
             else:
                 thresh_hold = os.path.getmtime(full_file_name)
-                print("global time: " + time.ctime(global_time))
-                print("thresh hold time: " + time.ctime(thresh_hold))
-                if(global_time == thresh_hold):
-                    print(global_time)
-                    print(thresh_hold)
-                    print("same modified date detected")
+                format_global_time = time.ctime(global_time)
+                format_threshold = time.ctime(thresh_hold)
+                obj_global = time.strptime(format_global_time)
+                obj_threshold = time.strptime(format_threshold)
+                T_stamp_global = time.strftime("%Y-%m-%d %H:%M", obj_global)
+                T_stamp_threshold = time.strftime("%Y-%m-%d %H:%M", obj_threshold)
+                print("global time: " + T_stamp_global)
+                print("threshold: " + T_stamp_threshold)
+                if(T_stamp_global == T_stamp_threshold):
+                    #print(global_time)
+                    #print(thresh_hold)
+                    #print("same modified date detected")
                     # if path contains the full filename, move the file from source to destination
                     if(os.path.isfile(full_file_name)):
                         print(full_file_name)
@@ -61,17 +67,17 @@ def transferFile():
 from_folder_files = r"C:\Users\krayn\test-file-transfering\From\*"
 source_folder = r"C:\Users\krayn\test-file-transfering\From"
 to_folder = r"C:\Users\krayn\test-file-transfering\To4"
-source_f = os.listdir(source_folder)
-to_f = os.listdir(to_folder)
 
-len_source = len(source_f)
-len_dest = len(to_f)
-while(len_dest == 0):
-    print(len_source)
-    print(len_dest)
-    len_deduct = transferFile()
-    len_source-=len_deduct
-    len_dest+=len_deduct
+while(True):
+    source_f = os.listdir(source_folder)
+    to_f = os.listdir(to_folder)
+
+    len_source = len(source_f)
+    len_dest = len(to_f)
+    if(len_dest == 0):
+        len_deduct = transferFile()
+        #len_source-=len_deduct
+        #len_dest+=len_deduct
     
     
     
