@@ -7,6 +7,7 @@ import shutil
 from pathlib import Path
 import glob
 import time
+from datetime import datetime, timedelta
 
 def transferFile():
     # define file patern
@@ -36,11 +37,22 @@ def transferFile():
                 format_threshold = time.ctime(thresh_hold)
                 obj_global = time.strptime(format_global_time)
                 obj_threshold = time.strptime(format_threshold)
-                T_stamp_global = time.strftime("%Y-%m-%d %H:%M", obj_global)
-                T_stamp_threshold = time.strftime("%Y-%m-%d %H:%M", obj_threshold)
+                date_format = "%Y-%m-%d %H:%M"
+                T_stamp_global = time.strftime(date_format, obj_global)
+                T_stamp_threshold = time.strftime(date_format, obj_threshold)
+                
+
+                # convert to datetime object
+                global_date_time = datetime.strptime(T_stamp_global, date_format).time()
+                thresh_hold_date_time = datetime.strptime(T_stamp_threshold, date_format).time()
+                t_global = timedelta(hours = global_date_time.hour, minutes=global_date_time.minute,seconds = global_date_time.second)
+                t_threshold = timedelta(hours = thresh_hold_date_time.hour, minutes=thresh_hold_date_time.minute, seconds = thresh_hold_date_time.second)
                 print("global time: " + T_stamp_global)
                 print("threshold: " + T_stamp_threshold)
-                if(T_stamp_global == T_stamp_threshold):
+                duration = t_threshold - t_global
+                print(duration)
+                
+                if(T_stamp_global == T_stamp_threshold or (duration <= timedelta(minutes=10) and duration > timedelta(minutes = 0))):
                     #print(global_time)
                     #print(thresh_hold)
                     #print("same modified date detected")
