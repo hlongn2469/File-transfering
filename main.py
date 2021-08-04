@@ -8,6 +8,17 @@ from pathlib import Path
 import glob
 import time
 from datetime import datetime, timedelta
+import psutil    
+import smtplib
+import signal,sys
+import atexit
+
+report_summary = []
+# select files that have xml extensions
+#assign source-destination folder path
+from_folder_files = r"C:\Users\krayn\test-file-transfering\From\*"
+source_folder = r"C:\Users\krayn\test-file-transfering\From"
+to_folder = r"C:\Users\krayn\test-file-transfering\To4"
 
 def transferFile():
     # define file patern
@@ -18,17 +29,26 @@ def transferFile():
 
     count = 0
     global_time = 0
+    report_list = []
     list = []
     # move file
     for file in sorted_by_mtime_ascending:
         # if filename match pattern
         if(fnmatch.fnmatch(file, pattern)):
+            count +=1
+            count_str = str(count)
             # extract full file name
             full_file_name = os.path.join(source_folder, file)
-            if(count == 0):
+            if(count == 1):
                 global_time = os.path.getmtime(full_file_name)
                 if(os.path.isfile(full_file_name)):
                     print(full_file_name)
+                    format_global_time = time.ctime(global_time)
+                    obj_global = time.strptime(format_global_time)
+                    date_format = "%Y-%m-%d %H:%M"
+                    T_stamp_global = time.strftime(date_format, obj_global)
+                    # report first item in batch
+                    report_list.append('NEW BATCH!!!! Starting with file: ' + full_file_name + ' @ ' + T_stamp_global + '\n')
                     list.append(full_file_name)
                     
             else:
@@ -59,37 +79,83 @@ def transferFile():
                     # if path contains the full filename, move the file from source to destination
                     if(os.path.isfile(full_file_name)):
                         print(full_file_name)
+                        report_list.append(full_file_name + ' @ ' + T_stamp_threshold + '\n')
                         list.append(full_file_name)
                         
                 else: 
                     break   
             
-        count +=1
+        
     
-    return_count = 0
+    
     for item in list:
-        return_count +=1
+        
         shutil.move(item, to_folder)
 
-    return return_count
+    return report_list
+
+@atexit.register
+def goodbye():
+    print("program stopped")
+    gmail_user = ''
+    gmail_pw = ''
+    #email properties
+    sent_from = gmail_user
+    to = ['']
+    subject = 'FILE TRANSFERING PROGRAM STOPPED'
+    email_text = "The program has been stopped by the authorizer. Here is the report log before stoppage: \n"
+    for batch in report_summary:
+        for file in batch:
+            email_text += file 
+        email_text += '\n-------------------------------------------------------------------------------------------\n'
+    msg = 'Subject: {}\n\n{}'.format(subject, email_text)
+    
+    #email send request
+    try:
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.ehlo()
+        server.login(gmail_user, gmail_pw)
+        server.sendmail(sent_from, to, msg)
+        server.close()
+
+        print ('Email sent!')
+    except Exception as e:
+        print(e)
+        print ('Something went wrong...')
 
 
-# select files that have xml extensions
-#assign source-destination folder path
-from_folder_files = r"C:\Users\krayn\test-file-transfering\From\*"
-source_folder = r"C:\Users\krayn\test-file-transfering\From"
-to_folder = r"C:\Users\krayn\test-file-transfering\To4"
+try:
+    while(True):
+        source_f = os.listdir(source_folder)
+        to_f = os.listdir(to_folder)
 
-while(True):
-    source_f = os.listdir(source_folder)
-    to_f = os.listdir(to_folder)
+        len_source = len(source_f)
+        len_dest = len(to_f)
+        if(len_dest == 0):
+            current_batch_summary = transferFile()
+            #len_source-=len_deduct
+            #len_dest+=len_deduct
+            report_summary.append(current_batch_summary)
+except SystemExit:
+    print("System exit")
+    print("program terminated")
+    
+except KeyboardInterrupt:
+    print("keyboardinterrupt")
+    print("program terminated")
 
-    len_source = len(source_f)
-    len_dest = len(to_f)
-    if(len_dest == 0):
-        len_deduct = transferFile()
-        #len_source-=len_deduct
-        #len_dest+=len_deduct
+except GeneratorExit:
+    print("Generator exit")
+    print("program terminated")
+
+except Exception:
+    print("Exception")
+    print("program terminated")
+
+
+    
+# C:\Users\krayn\OneDrive\Documents\GitHub\File-transfering   
+
     
     
     
