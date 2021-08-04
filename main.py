@@ -9,7 +9,7 @@ import glob
 import time
 from datetime import datetime, timedelta
 import psutil    
-import smtplib
+import smtplib, ssl
 import signal,sys
 import atexit
 
@@ -111,12 +111,17 @@ def goodbye():
     msg = 'Subject: {}\n\n{}'.format(subject, email_text)
     
     #email send request
+    smtp_server = ''
+    port = 587
+    context = ssl.create_default_context()
     try:
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-        server.ehlo()
-        server.login(gmail_user, gmail_pw)
-        server.sendmail(sent_from, to, msg)
-        server.close()
+        with smtplib.SMTP(smtp_server, port) as server:
+            server.ehlo()
+            server.starttls(context=context)
+            server.ehlo()
+            server.login(gmail_user, gmail_pw)
+            server.sendmail(sent_from, to, msg)
+            server.close()
 
         print ('Email sent!')
     except Exception as e:
